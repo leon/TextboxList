@@ -152,7 +152,7 @@ TextboxList.Autocomplete = new Class({
 		this.method = TextboxList.Autocomplete.Methods[this.options.method];
 		this.container = new Element('div.'+this.prefix).setStyle('width', this.textboxlist.container.getStyle('width')).inject(this.textboxlist.container);
 		if ($chk(this.options.placeholder) || this.options.queryServer) {
-			this.placeholder = new Element('div,'+this.prefix+'-placeholder').inject(this.container);
+			this.placeholder = new Element('div.'+this.prefix+'-placeholder').inject(this.container);
 		}
 		this.list = new Element('ul.'+this.prefix+'-results').inject(this.container);
 		this.list.addEvent('click', function(ev) {
