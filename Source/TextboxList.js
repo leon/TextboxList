@@ -161,7 +161,7 @@ var TextboxList = new Class({
 	},
 
 	focusRelative: function(dir, to) {
-		var bit = this.getBit(document.id([to, this.current].pick()))['get'+dir.capitalize()]();
+		var bit = this.getBit(document.id([to, this.current].pick())['get'+dir.capitalize()]());
 		if (bit) {
 			bit.focus();
 		}
