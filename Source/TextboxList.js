@@ -64,6 +64,122 @@ var TextboxList = new Class({
 		}
 	},
 
+	add: function(plain, id, html, afterEl) {
+		var box = this.create('box', [id, plain, html]);
+		if (box) {
+			if ( ! afterEl) {
+				afterEl = this.list.getLast('.'+this.options.prefix+'-bit-box');
+			}
+			box.inject(afterEl || this.list, afterEl ? 'after' : 'top');
+		}
+		return this;
+	},
+
+	afterInit: function(){
+		if (this.options.unique) {
+			this.index = [];
+		}
+		if (this.options.endEditableBit) {
+			this.create('editable', null, {tabIndex: this.original.tabIndex}).inject(this.list);
+		}
+		var update = this.update.bind(this);
+		this.addEvent('bitAdd', update, true).addEvent('bitRemove', update, true);
+		document.addEvents({
+			click: function(e) {
+				if ( ! this.focused) return;
+				if (e.target.className.contains(this.options.prefix)){
+					if (e.target == this.container) return;
+					var parent = e.target.getParent('.' + this.options.prefix);
+					if (parent == this.container) return;
+				}
+				this.blur();
+			}.bind(this),
+			keydown: function(ev) {
+				if ( ! this.focused || ! this.current) return;
+				var caret = this.current.is('editable') ? this.current.getCaret() : null;
+				var value = this.current.getValue()[1];
+				var special = ['shift', 'alt', 'meta', 'ctrl'].some(function(e) {
+					return ev[e];
+				});
+				var custom = special || (this.current.is('editable') && this.current.isSelected());
+				switch (ev.code) {
+					case Event.Keys.backspace:
+						if (this.current.is('box')) {
+							ev.stop();
+							return this.current.remove();
+						}
+					case this.options.keys.previous:
+						if (this.current.is('box') || ((caret == 0 || !value.length) && ! custom)) {
+							ev.stop();
+							this.focusRelative('previous');
+						}
+						break;
+					case Event.Keys['delete']:
+						if (this.current.is('box')) {
+							ev.stop();
+							return this.current.remove();
+						}
+					case this.options.keys.next:
+						if (this.current.is('box') || (caret == value.length && ! custom)) {
+							ev.stop();
+							this.focusRelative('next');
+						}
+				}
+			}.bind(this)
+		});
+		this.setValues(this.options.decode(this.original.get('value')));
+	},
+
+	blur: function() {
+		if ( ! this.focused) return this;
+		if (this.current) {
+			this.current.blur();
+		}
+		this.focused = false;
+		return this.fireEvent('blur');
+	},
+
+	create: function(klass, value, options) {
+		if (klass == 'box') {
+			if (( ! value[0] && ! value[1]) || ($chk(value[1]) && ! this.options.check(value[1]))) return false;
+			if ($chk(this.options.max) && this.list.getChildren('.'+this.options.prefix+'-bit-box').length + 1 > this.options.max) return false;
+			if (this.options.unique && this.index.contains(this.uniqueValue(value))) return false;
+		}
+		return new TextboxListBit[klass.capitalize()](value, this, Object.merge(this.options.bitsOptions[klass], options));
+	},
+
+	enablePlugin: function(name, options) {
+		this.plugins[name] = new TextboxList[name.camelCase().capitalize()](this, options);
+	},
+
+	focusLast: function() {
+		var lastElement = this.list.getLast();
+		if (lastElement) {
+			this.getBit(lastElement).focus();
+		}
+		return this;
+	},
+
+	focusRelative: function(dir, to) {
+		var bit = this.getBit(document.id([to, this.current].pick()))['get'+dir.capitalize()]();
+		if (bit) {
+			bit.focus();
+		}
+		return this;
+	},
+
+	getBit: function(obj) {
+		return (typeOf(obj) == 'element') ? obj.retrieve('textboxlist:bit') : obj;
+	},
+
+	getValues: function() {
+		return this.list.getChildren().map(function(el) {
+			var bit = this.getBit(el);
+			if (bit.is('editable')) return null;
+			return bit.getValue();
+		}, this).clean();
+	},
+
 	initialize: function(element, options){
 		this.setOptions(options);
 		this.original = document.id(element).setStyle('display', 'none').set('autocomplete', 'off').addEvent('focus', this.focusLast.bind(this));
@@ -83,91 +199,6 @@ var TextboxList = new Class({
 		this.afterInit();
 	},
 
-	enablePlugin: function(name, options) {
-		this.plugins[name] = new TextboxList[name.camelCase().capitalize()](this, options);
-	},
-
-	afterInit: function(){
-		if (this.options.unique) this.index = [];
-		if (this.options.endEditableBit) this.create('editable', null, {tabIndex: this.original.tabIndex}).inject(this.list);
-		var update = this.update.bind(this);
-		this.addEvent('bitAdd', update, true).addEvent('bitRemove', update, true);
-		document.addEvents({
-			click: function(e){
-				if ( ! this.focused) return;
-				if (e.target.className.contains(this.options.prefix)){
-					if (e.target == this.container) return;
-					var parent = e.target.getParent('.' + this.options.prefix);
-					if (parent == this.container) return;
-				}
-				this.blur();
-			}.bind(this),
-			keydown: function(ev){
-				if ( ! this.focused || ! this.current) return;
-				var caret = this.current.is('editable') ? this.current.getCaret() : null;
-				var value = this.current.getValue()[1];
-				var special = ['shift', 'alt', 'meta', 'ctrl'].some(function(e) {
-					return ev[e];
-				});
-				var custom = special || (this.current.is('editable') && this.current.isSelected());
-				switch (ev.code){
-					case Event.Keys.backspace:
-						if (this.current.is('box')) {
-							ev.stop();
-							return this.current.remove(); 
-						}
-					case this.options.keys.previous:
-						if (this.current.is('box') || ((caret == 0 || !value.length) && ! custom)) {
-							ev.stop();
-							this.focusRelative('previous');
-						}
-						break;
-					case Event.Keys['delete']:
-						if (this.current.is('box')) {
-							ev.stop();
-							return this.current.remove(); 
-						}
-					case this.options.keys.next: 
-						if (this.current.is('box') || (caret == value.length && ! custom)) {
-							ev.stop();
-							this.focusRelative('next');
-						}
-				}
-			}.bind(this)
-		});		
-		this.setValues(this.options.decode(this.original.get('value')));
-	},
-
-	create: function(klass, value, options) {
-		if (klass == 'box') {
-			if (( ! value[0] && ! value[1]) || ($chk(value[1]) && ! this.options.check(value[1]))) return false;
-			if ($chk(this.options.max) && this.list.getChildren('.'+this.options.prefix+'-bit-box').length + 1 > this.options.max) return false;
-			if (this.options.unique && this.index.contains(this.uniqueValue(value))) return false;		
-		}		
-		return new TextboxListBit[klass.capitalize()](value, this, Object.merge(this.options.bitsOptions[klass], options));
-	},
-
-	uniqueValue: function(value) {
-		return $chk(value[0]) ? value[0] : (this.options.uniqueInsensitive ? value[1].toLowerCase() : value[1]);
-	},
-
-	onFocus: function(bit) {
-		if (this.current) this.current.blur();
-		clearTimeout(this.blurtimer);
-		this.current = bit;
-		this.container.addClass(this.options.prefix+'-focus');
-		if ( ! this.focused){
-			this.focused = true;
-			this.fireEvent('focus', bit);
-		}
-	},
-
-	onBlur: function(bit, all) {
-		this.current = null;
-		this.container.removeClass(this.options.prefix+'-focus');		
-		this.blurtimer = this.blur.delay(all ? 0 : 200, this);
-	},
-
 	onAdd: function(bit) {
 		if (this.options.unique && bit.is('box')) {
 			this.index.push(this.uniqueValue(bit.value));
@@ -183,6 +214,23 @@ var TextboxList = new Class({
 		}
 	},
 
+	onBlur: function(bit, all) {
+		this.current = null;
+		this.container.removeClass(this.options.prefix+'-focus');
+		this.blurtimer = this.blur.delay(all ? 0 : 200, this);
+	},
+
+	onFocus: function(bit) {
+		if (this.current) this.current.blur();
+		clearTimeout(this.blurtimer);
+		this.current = bit;
+		this.container.addClass(this.options.prefix+'-focus');
+		if ( ! this.focused){
+			this.focused = true;
+			this.fireEvent('focus', bit);
+		}
+	},
+
 	onRemove: function(bit) {
 		if ( ! this.focused) return;
 		if (this.options.unique && bit.is('box')) {
@@ -195,54 +243,6 @@ var TextboxList = new Class({
 		this.focusRelative('next', bit);
 	},
 
-	focusRelative: function(dir, to) {
-		var bit = this.getBit(document.id([to, this.current].pick()))['get'+dir.capitalize()]();
-		if (bit) {
-			bit.focus();
-		}
-		return this; 
-	},
-
-	focusLast: function() {
-		var lastElement = this.list.getLast();
-		if (lastElement) {
-			this.getBit(lastElement).focus();
-		}
-		return this;
-	},
-
-	blur: function() {
-		if ( ! this.focused) return this;
-		if (this.current) {
-			this.current.blur();
-		}
-		this.focused = false;
-		return this.fireEvent('blur');
-	},
-
-	add: function(plain, id, html, afterEl) {
-		var box = this.create('box', [id, plain, html]);
-		if (box) {
-			if ( ! afterEl) {
-				afterEl = this.list.getLast('.'+this.options.prefix+'-bit-box');
-			}
-			box.inject(afterEl || this.list, afterEl ? 'after' : 'top');
-		}
-		return this;
-	},
-
-	getBit: function(obj) {
-		return (typeOf(obj) == 'element') ? obj.retrieve('textboxlist:bit') : obj;
-	},
-
-	getValues: function() {
-		return this.list.getChildren().map(function(el) {
-			var bit = this.getBit(el);
-			if (bit.is('editable')) return null;
-			return bit.getValue();
-		}, this).clean();
-	},
-
 	setValues: function(values) {
 		if ( ! values) return;
 		values.each(function(value) {
@@ -250,6 +250,10 @@ var TextboxList = new Class({
 				this.add.apply(this, typeOf(value) == 'array' ? [value[1], value[0], value[2]] : [value]);
 			}
 		}, this);
+	},
+
+	uniqueValue: function(value) {
+		return $chk(value[0]) ? value[0] : (this.options.uniqueInsensitive ? value[1].toLowerCase() : value[1]);
 	},
 
 	update: function(){
@@ -261,6 +265,38 @@ var TextboxList = new Class({
 var TextboxListBit = new Class({
 
 	Implements: Options,
+
+	blur: function() {
+		if ( ! this.focused) return this;
+		this.focused = false;
+		this.textboxlist.onBlur(this);
+		this.bit.removeClass(this.prefix+'-focus').removeClass(this.prefix+'-'+this.type+'-focus');
+		return this.fireBitEvent('blur');
+	},
+
+	fireBitEvent: function(type) {
+		type = type.capitalize();
+		this.textboxlist.fireEvent('bit'+type, this).fireEvent('bit'+this.name+type, this);
+		return this;
+	},
+
+	focus: function() {
+		if (this.focused) return this;
+		this.show();
+		this.focused = true;
+		this.textboxlist.onFocus(this);
+		this.bit.addClass(this.prefix+'-focus').addClass(this.prefix+'-'+this.type+'-focus');
+		return this.fireBitEvent('focus');
+	},
+
+	getValue: function() {
+		return this.value;
+	},
+
+	hide: function() {
+		this.bit.setStyle('display', 'none');
+		return this;
+	},
 
 	initialize: function(value, textboxlist, options){
 		this.name = this.type.capitalize();
@@ -286,21 +322,8 @@ var TextboxListBit = new Class({
 		return this.fireBitEvent('add');
 	},
 
-	focus: function() {
-		if (this.focused) return this;
-		this.show();
-		this.focused = true;
-		this.textboxlist.onFocus(this);
-		this.bit.addClass(this.prefix+'-focus').addClass(this.prefix+'-'+this.type+'-focus');
-		return this.fireBitEvent('focus');
-	},
-
-	blur: function() {
-		if ( ! this.focused) return this;
-		this.focused = false;
-		this.textboxlist.onBlur(this);
-		this.bit.removeClass(this.prefix+'-focus').removeClass(this.prefix+'-'+this.type+'-focus');
-		return this.fireBitEvent('blur');
+	is: function(type) {
+		return this.type == type;
 	},
 
 	remove: function() {
@@ -310,33 +333,14 @@ var TextboxListBit = new Class({
 		return this.fireBitEvent('remove');
 	},
 
-	show: function() {
-		this.bit.setStyle('display', 'block');
-		return this;
-	},
-
-	hide: function() {
-		this.bit.setStyle('display', 'none');
-		return this;
-	},
-
-	fireBitEvent: function(type) {
-		type = type.capitalize();
-		this.textboxlist.fireEvent('bit'+type, this).fireEvent('bit'+this.name+type, this);
-		return this;
-	},
-
-	is: function(type) {
-		return this.type == type;
-	},
-
 	setValue: function(value) {
 		this.value = value;
 		return this;
 	},
 
-	getValue: function() {
-		return this.value;
+	show: function() {
+		this.bit.setStyle('display', 'block');
+		return this;
 	},
 
 	toElement: function() {
@@ -359,6 +363,17 @@ TextboxListBit.Editable = new Class({
 	},
 
 	type: 'editable',
+
+	blur: function(noReal) {
+		this.parent();
+		if ( ! noReal) {
+			this.element.blur();
+		}
+		if (this.hidden && ! this.element.value.length) {
+			this.hide();
+		}
+		return this;
+	},
 
 	initialize: function(value, textboxlist, options) {
 		this.parent(value, textboxlist, options);
@@ -394,27 +409,10 @@ TextboxListBit.Editable = new Class({
 		}
 	},
 
-	hide: function() {
-		this.parent();
-		this.hidden = true;
-		return this;
-	},
-
 	focus: function(noReal) {
 		this.parent();
 		if ( ! noReal) {
 			this.element.focus();
-		}
-		return this;
-	},
-
-	blur: function(noReal) {
-		this.parent();
-		if ( ! noReal) {
-			this.element.blur();
-		}
-		if (this.hidden && ! this.element.value.length) {
-			this.hide();
 		}
 		return this;
 	},
@@ -439,6 +437,16 @@ TextboxListBit.Editable = new Class({
 		} else return this.element.selectionEnd;
 	},
 
+	getValue: function() {
+		return [null, this.element.value, null];
+	},
+
+	hide: function() {
+		this.parent();
+		this.hidden = true;
+		return this;
+	},
+
 	isSelected: function() {
 		return this.focused && (this.getCaret() !== this.getCaretEnd());
 	},
@@ -449,10 +457,6 @@ TextboxListBit.Editable = new Class({
 			this.element.retrieve('growing').resize();
 		}
 		return this;
-	},
-
-	getValue: function() {
-		return [null, this.element.value, null];
 	},
 
 	toBox: function() {
@@ -493,7 +497,7 @@ TextboxListBit.Box = new Class({
 
 });
 
-if (window.GrowingInput == null) { (function(){
+if (window.GrowingInput == null) { (function() {
 
 GrowingInput = new Class({
 
@@ -504,6 +508,12 @@ GrowingInput = new Class({
 		max: null,
 		startWidth: 2,
 		correction: 15
+	},
+
+	calculate: function(chars) {
+		this.calc.set('html', chars);
+		var width = this.calc.getStyle('width').toInt();
+		return (width ? width : this.options.startWidth) + this.options.correction;
 	},
 
 	initialize: function(element, options) {
@@ -527,12 +537,6 @@ GrowingInput = new Class({
 		this.element.addEvents({blur: resize, keyup: resize, keydown: resize, keypress: resize});
 	},
 
-	calculate: function(chars) {
-		this.calc.set('html', chars);
-		var width = this.calc.getStyle('width').toInt();
-		return (width ? width : this.options.startWidth) + this.options.correction;
-	},
-
 	resize: function() {
 		this.lastvalue = this.value;
 		this.value = this.element.value;
@@ -551,10 +555,6 @@ GrowingInput = new Class({
 
 });
 
-var str_repeat = function(str, times) {
-	return new Array(times + 1).join(str);
-};
-
 var str_pad = function(self, length, str, dir) {
 	if (self.length >= length) return this;
 	str = str || ' ';
@@ -562,6 +562,10 @@ var str_pad = function(self, length, str, dir) {
 	if (!dir || dir == 'right') return self + pad;
 	if (dir == 'left') return pad + self;
 	return pad.substr(0, (pad.length / 2).floor()) + self + pad.substr(0, (pad.length / 2).ceil());
+};
+
+var str_repeat = function(str, times) {
+	return new Array(times + 1).join(str);
 };
 
 })(); }

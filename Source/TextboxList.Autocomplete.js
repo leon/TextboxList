@@ -38,6 +38,98 @@ TextboxList.Autocomplete = new Class({
 		placeholder: 'Type to receive suggestions'
 	},
 
+	addCurrent: function() {
+		var value = this.current.retrieve('textboxlist:auto:value');
+		var box = this.textboxlist.create('box', value.slice(0, 3));
+		if (box) {
+			box.autoValue = value;
+			if (this.index != null) {
+				this.index.push(value);
+			}
+			this.currentInput.setValue([null, '', null]);
+			box.inject(document.id(this.currentInput), 'before');
+		}
+		this.blur();
+		return this;
+	},
+
+	addResult: function(result, search) {
+		var element = new Element('li.'+this.prefix+'-result[html="'+[result[3], result[1]].pick()+'"]').store('textboxlist:auto:value', result);
+		this.list.adopt(element);
+		if (this.options.highlight) {
+			$$(this.options.highlightSelector ? element.getElements(this.options.highlightSelector) : element).each(function(el) {
+				if (el.get('html')) {
+					this.method.highlight(el, search, this.options.insensitive, this.prefix+'-highlight');
+				}
+			}, this);
+		}
+		if (this.options.mouseInteraction) {
+			element.setStyle('cursor', 'pointer').addEvents({
+				mouseenter: function() {
+					this.focus(element);
+				}.bind(this),
+				mousedown: function(ev) {
+					ev.stop();
+					clearTimeout(this.hidetimer);
+					this.doAdd = true;
+				}.bind(this),
+				mouseup: function() {
+					if (this.doAdd) {
+						this.addCurrent();
+						this.currentInput.focus();
+						this.search();
+						this.doAdd = false;
+					}
+				}.bind(this)
+			});
+			if ( ! this.options.onlyFromValues) {
+				element.addEvent('mouseleave', function() {
+					if (this.current == element) {
+						this.blur();
+					}
+				}.bind(this));
+			}
+		}
+	},
+
+	blur: function() {
+		if (this.current) {
+			this.current.removeClass(this.prefix+'-result-focus');
+			this.current = null;
+		}
+	},
+
+	focus: function(element) {
+		if (element) {
+			this.blur();
+			this.current = element.addClass(this.prefix+'-result-focus');
+		}
+		return this;
+	},
+
+	focusFirst: function() {
+		return this.focus(this.list.getFirst());
+	},
+
+	focusRelative: function(dir) {
+		if ( ! this.current) return this;
+		return this.focus(this.current['get'+dir.capitalize()]());
+	},
+
+	hide: function(ev) {
+		this.hidetimer = (function() {
+			this.hidePlaceholder();
+			this.list.setStyle('display', 'none');
+			this.currentSearch = null;
+		}).delay(Browser.Engine.trident ? 150 : 0, this);
+	},
+
+	hidePlaceholder: function() {
+		if (this.placeholder) {
+			this.placeholder.setStyle('display', 'none');
+		}
+	},
+
 	initialize: function(textboxlist, options) {
 		this.setOptions(options);
 		this.textboxlist = textboxlist;
@@ -70,14 +162,40 @@ TextboxList.Autocomplete = new Class({
 		this.navigate = this.navigate.bind(this);
 	},
 
-	setValues: function(values) {
-		this.values = values;
-	},
-
-	setupBit: function(bit) {
-		bit.element.addEvent('keydown', this.navigate, true).addEvent('keyup', function() {
-			this.search();
-		}.bind(this), true);
+	navigate: function(ev) {
+		switch (ev.code) {
+			case Event.Keys.up:
+				ev.stop();
+				if ( ! this.options.onlyFromValues && this.current && this.current == this.list.getFirst()) {
+					this.blur();
+				}
+				else {
+					this.focusRelative('previous');
+				}
+				break;
+			case Event.Keys.down:
+				ev.stop();
+				if (this.current) {
+					this.focusRelative('next');
+				}
+				else {
+					this.focusFirst()
+				}
+				break;
+			case Event.Keys.enter:
+				ev.stop();
+				if (this.current) {
+					this.addCurrent();
+				}
+				else if ( ! this.options.onlyFromValues) {
+					var value = this.currentInput.getValue();
+					var box = this.textboxlist.create('box', value);
+					if (box){
+						box.inject(document.id(this.currentInput), 'before');
+						this.currentInput.setValue([null, '', null]);
+					}
+				}
+		}
 	},
 
 	search: function(bit) {
@@ -125,6 +243,25 @@ TextboxList.Autocomplete = new Class({
 		}
 	},
 
+	setupBit: function(bit) {
+		bit.element.addEvent('keydown', this.navigate, true).addEvent('keyup', function() {
+			this.search();
+		}.bind(this), true);
+	},
+
+	setValues: function(values) {
+		this.values = values;
+	},
+
+	showPlaceholder: function(customHTML) {
+		if (this.placeholder) {
+			this.placeholder.setStyle('display', 'block');
+			if (customHTML) {
+				this.placeholder.set('html', customHTML);
+			}
+		}
+	},
+
 	showResults: function(search) {
 		var results = this.method.filter(this.values, search, this.options.insensitive, this.options.maxResults);
 		if (this.index) {
@@ -143,143 +280,6 @@ TextboxList.Autocomplete = new Class({
 			this.focusFirst();
 		}
 		this.results = results;
-	},
-
-	addResult: function(result, search) {
-		var element = new Element('li.'+this.prefix+'-result[html="'+[result[3], result[1]].pick()+'"]').store('textboxlist:auto:value', result);
-		this.list.adopt(element);
-		if (this.options.highlight) {
-			$$(this.options.highlightSelector ? element.getElements(this.options.highlightSelector) : element).each(function(el) {
-				if (el.get('html')) {
-					this.method.highlight(el, search, this.options.insensitive, this.prefix+'-highlight');
-				}
-			}, this);
-		}
-		if (this.options.mouseInteraction) {
-			element.setStyle('cursor', 'pointer').addEvents({
-				mouseenter: function() {
-					this.focus(element);
-				}.bind(this),
-				mousedown: function(ev) {
-					ev.stop();
-					clearTimeout(this.hidetimer);
-					this.doAdd = true;
-				}.bind(this),
-				mouseup: function() {
-					if (this.doAdd) {
-						this.addCurrent();
-						this.currentInput.focus();
-						this.search();
-						this.doAdd = false;
-					}
-				}.bind(this)
-			});
-			if ( ! this.options.onlyFromValues) {
-				element.addEvent('mouseleave', function() {
-					if (this.current == element) {
-						this.blur();
-					}
-				}.bind(this));
-			}
-		}
-	},
-
-	hide: function(ev) {
-		this.hidetimer = (function() {
-			this.hidePlaceholder();
-			this.list.setStyle('display', 'none');
-			this.currentSearch = null;
-		}).delay(Browser.Engine.trident ? 150 : 0, this);
-	},
-
-	showPlaceholder: function(customHTML) {
-		if (this.placeholder) {
-			this.placeholder.setStyle('display', 'block');	
-			if (customHTML) {
-				this.placeholder.set('html', customHTML);
-			}
-		}
-	},
-
-	hidePlaceholder: function() {
-		if (this.placeholder) {
-			this.placeholder.setStyle('display', 'none');
-		}
-	},
-
-	focus: function(element) {
-		if (element) {
-			this.blur();
-			this.current = element.addClass(this.prefix+'-result-focus');
-		}
-		return this;
-	},
-
-	blur: function() {
-		if (this.current) {
-			this.current.removeClass(this.prefix+'-result-focus');
-			this.current = null;
-		}
-	},
-
-	focusFirst: function() {
-		return this.focus(this.list.getFirst());
-	},
-
-	focusRelative: function(dir) {
-		if ( ! this.current) return this;
-		return this.focus(this.current['get'+dir.capitalize()]());
-	},
-
-	addCurrent: function() {
-		var value = this.current.retrieve('textboxlist:auto:value');
-		var box = this.textboxlist.create('box', value.slice(0, 3));
-		if (box) {
-			box.autoValue = value;
-			if (this.index != null) {
-				this.index.push(value);
-			}
-			this.currentInput.setValue([null, '', null]);
-			box.inject(document.id(this.currentInput), 'before');
-		}
-		this.blur();
-		return this;
-	},
-
-	navigate: function(ev) {
-		switch (ev.code) {
-			case Event.Keys.up:
-				ev.stop();
-				if ( ! this.options.onlyFromValues && this.current && this.current == this.list.getFirst()) {
-					this.blur();
-				}
-				else {
-					this.focusRelative('previous');
-				}
-				break;
-			case Event.Keys.down:
-				ev.stop();
-				if (this.current) {
-					this.focusRelative('next');
-				}
-				else {
-					this.focusFirst()
-				}
-				break;
-			case Event.Keys.enter:
-				ev.stop();
-				if (this.current) {
-					this.addCurrent();
-				}
-				else if ( ! this.options.onlyFromValues) {
-					var value = this.currentInput.getValue();
-					var box = this.textboxlist.create('box', value);
-					if (box){
-						box.inject(document.id(this.currentInput), 'before');
-						this.currentInput.setValue([null, '', null]);
-					}
-				}
-		}
 	}
 
 });

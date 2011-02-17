@@ -16,6 +16,7 @@ provides:
 (function(){
 
 TextboxList.Autocomplete.Methods.binary = {
+
 	filter: function(values, search, insensitive, max) {
 		var method = insensitive ? 'toLowerCase' : 'toString', low = 0, high = values.length - 1, lastTry;
 		search = search[method]();
@@ -63,6 +64,7 @@ TextboxList.Autocomplete.Methods.binary = {
 			return (a.charAt(0) == '<') ? a : '<strong class="'+klass+'">'+c+'</strong>'; 
 		}));
 	}
+
 };
 
 })();
