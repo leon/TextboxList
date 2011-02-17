@@ -39,19 +39,12 @@ var TextboxList = new Class({
 		onBitEditableAdd: $empty,
 		onBitEditableRemove: $empty,
 		**/
-		prefix: 'textboxlist',
-		max: null,
-		unique: false,
-		uniqueInsensitive: true,
-		endEditableBit: true,
-		startEditableBit: true,
-		hideEditableBits: true,
-		inBetweenEditableBits: true,
-		keys: {previous: Event.Keys.left, next: Event.Keys.right},
 		bitsOptions: {editable: {}, box: {}},
-		plugins: {},
 		check: function(s) {
 			return s.clean().replace(/,/g, '') != '';
+		},
+		decode: function(o) {
+			return o.split(',');
 		},
 		encode: function(o) {
 				return o.map(function(v) {
@@ -59,9 +52,16 @@ var TextboxList = new Class({
 				return $chk(v) ? v : null;
 			}).clean().join(',');
 		},
-		decode: function(o) {
-			return o.split(',');
-		}
+		endEditableBit: true,
+		hideEditableBits: true,
+		inBetweenEditableBits: true,
+		keys: {previous: Event.Keys.left, next: Event.Keys.right},
+		max: null,
+		plugins: {},
+		prefix: 'textboxlist',
+		startEditableBit: true,
+		unique: false,
+		uniqueInsensitive: true
 	},
 
 	add: function(plain, id, html, afterEl) {

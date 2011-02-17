@@ -20,13 +20,15 @@ TextboxList.Autocomplete = new Class({
 	Implements: Options,
 
 	options: {
-		minLength: 1,
-		maxResults: 10,
-		insensitive: true,
 		highlight: true,
 		highlightSelector: null,
+		insensitive: true,
+		maxResults: 10,
+		minLength: 1,
+		method: 'standard',
 		mouseInteraction: true,
 		onlyFromValues: false,
+		placeholder: 'Type to receive suggestions',
 		queryRemote: false,
 		remote: {
 			extraParams: {},
@@ -35,8 +37,7 @@ TextboxList.Autocomplete = new Class({
 			param: 'search',
 			url: ''
 		},
-		method: 'standard',
-		placeholder: 'Type to receive suggestions'
+		resultsFilter: null
 	},
 
 	addCurrent: function() {
@@ -226,9 +227,8 @@ TextboxList.Autocomplete = new Class({
 					this.currentRequest.cancel();
 				}
 				this.currentRequest = new Request.JSON({
-					url: this.options.remote.url,
 					data: data,
-					data: that.options.remote.method,
+					method: that.options.remote.method,
 					onRequest: function() {
 						that.showPlaceholder(that.options.remote.loadPlaceholder);
 					},
@@ -236,7 +236,8 @@ TextboxList.Autocomplete = new Class({
 						that.searchValues[search] = data;
 						that.values = data;
 						that.showResults(search);
-					}
+					},
+					url: this.options.remote.url
 				}).send();
 			}
 		}
@@ -267,15 +268,21 @@ TextboxList.Autocomplete = new Class({
 	showResults: function(search) {
 		var results = this.method.filter(this.values, search, this.options.insensitive, this.options.maxResults);
 		if (this.index) {
+			var ids = this.index.map(function(value) {
+				return value[0];
+			});
 			results = results.filter(function(value) {
-				return ! this.index.contains(value);
+				return ! ids.contains(value[0]);
 			}, this);
 		}
+		if (typeOf(this.options.resultsFilter) == 'function') {
+			results = this.options.resultsFilter(results);
+		}
 		this.hidePlaceholder();
-		if ( ! results.length) return;
+		results.each(function(result) {
 		this.blur();
 		this.list.empty().setStyle('display', 'block');
-		results.each(function(result) {
+		if ( ! results.length) return;
 			this.addResult(result, search);
 		}, this);
 		if (this.options.onlyFromValues) {
