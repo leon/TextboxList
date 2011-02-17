@@ -6,7 +6,7 @@ authors:
   - Guillermo Rauch
 
 requires:
-  core/1.2.1:   '*'
+  core/1.3:   '*'
 
 provides:
   - textboxlist.autocomplete
@@ -121,7 +121,7 @@ TextboxList.Autocomplete = new Class({
 			this.hidePlaceholder();
 			this.list.setStyle('display', 'none');
 			this.currentSearch = null;
-		}).delay(Browser.Engine.trident ? 150 : 0, this);
+		}).delay(Browser.ie ? 150 : 0, this);
 	},
 
 	hidePlaceholder: function() {

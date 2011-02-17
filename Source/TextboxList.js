@@ -89,7 +89,7 @@ var TextboxList = new Class({
 				if ( ! this.focused) return;
 				if (e.target.className.contains(this.options.prefix)){
 					if (e.target == this.container) return;
-					var parent = e.target.getParent('.' + this.options.prefix);
+					var parent = e.target.getParent('.'+this.options.prefix);
 					if (parent == this.container) return;
 				}
 				this.blur();
@@ -180,16 +180,16 @@ var TextboxList = new Class({
 		}, this).clean();
 	},
 
-	initialize: function(element, options){
+	initialize: function(element, options) {
 		this.setOptions(options);
 		this.original = document.id(element).setStyle('display', 'none').set('autocomplete', 'off').addEvent('focus', this.focusLast.bind(this));
-		this.container = new Element('div', {'class': this.options.prefix}).inject(element, 'after');
+		this.container = new Element('div.'+this.options.prefix).inject(element, 'after');
 		this.container.addEvent('click', function(e) {
 			if ((e.target == this.list || e.target == this.container) && ( ! this.focused || document.id(this.current) != this.list.getLast())) {
 				this.focusLast();
 			}
 		}.bind(this));
-		this.list = new Element('ul', {'class': this.options.prefix+'-bits'}).inject(this.container);
+		this.list = new Element('ul.'+this.options.prefix+'-bits').inject(this.container);
 		for (var name in this.options.plugins) {
 			this.enablePlugin(name, this.options.plugins[name]);
 		}
@@ -487,7 +487,7 @@ TextboxListBit.Box = new Class({
 		this.bit.set('html', $chk(this.value[2]) ? this.value[2] : this.value[1]);
 		this.bit.addEvent('click', this.focus.bind(this));
 		if (this.options.deleteButton) {
-			this.bit.addClass(this.typeprefix + '-deletable');
+			this.bit.addClass(this.typeprefix+'-deletable');
 			this.close = new Element('a.'+this.typeprefix+'-deletebutton[href=#]', {events: {click: this.remove.bind(this)}}).inject(this.bit);
 		}
 		this.bit.getChildren().addEvent('click', function(e) {
