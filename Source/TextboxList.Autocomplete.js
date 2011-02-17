@@ -29,10 +29,11 @@ TextboxList.Autocomplete = new Class({
 		onlyFromValues: false,
 		queryRemote: false,
 		remote: {
-			url: '',
-			param: 'search',
 			extraParams: {},
-			loadPlaceholder: 'Please wait...'
+			loadPlaceholder: 'Please wait...',
+			method: 'post',
+			param: 'search',
+			url: ''
 		},
 		method: 'standard',
 		placeholder: 'Type to receive suggestions'
@@ -227,6 +228,7 @@ TextboxList.Autocomplete = new Class({
 				this.currentRequest = new Request.JSON({
 					url: this.options.remote.url,
 					data: data,
+					data: that.options.remote.method,
 					onRequest: function() {
 						that.showPlaceholder(that.options.remote.loadPlaceholder);
 					},
