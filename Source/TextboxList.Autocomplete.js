@@ -152,7 +152,10 @@ TextboxList.Autocomplete = new Class({
 		}
 		this.prefix = this.textboxlist.options.prefix+'-autocomplete';
 		this.method = TextboxList.Autocomplete.Methods[this.options.method];
-		this.container = new Element('div.'+this.prefix).setStyle('width', this.textboxlist.container.getStyle('width')).inject(this.textboxlist.container);
+		this.container = new Element('div.'+this.prefix).inject(this.textboxlist.container);
+		if ((width = this.textboxlist.container.getStyle('width').toInt()) > 0) {
+			this.container.setStyle('width', width);
+		}
 		if ($chk(this.options.placeholder) || this.options.queryServer) {
 			this.placeholder = new Element('div.'+this.prefix+'-placeholder').inject(this.container);
 		}
