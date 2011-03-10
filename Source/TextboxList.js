@@ -422,7 +422,7 @@ TextboxListBit.Editable = new Class({
 			var range = document.selection.createRange().duplicate();
 			range.moveEnd('character', this.element.value.length);
 			if (range.text === '') return this.element.value.length;
-			return this.element.value.lastIndexOf(r.text);
+			return this.element.value.lastIndexOf(range.text);
 		}
 		else {
 			return this.element.selectionStart;
