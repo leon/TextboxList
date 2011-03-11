@@ -234,10 +234,12 @@ TextboxList.Autocomplete = new Class({
 					method: that.options.remote.method,
 					onRequest: function() {
 						that.showPlaceholder(that.options.remote.loadPlaceholder);
+						that.textboxlist.fireEvent('request');
 					},
 					onSuccess: function(data){
 						that.searchValues[search] = data;
 						that.values = data;
+						that.textboxlist.fireEvent('response');
 						that.showResults(search);
 					},
 					url: this.options.remote.url
