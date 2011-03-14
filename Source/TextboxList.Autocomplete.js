@@ -31,6 +31,7 @@ TextboxList.Autocomplete = new Class({
 		placeholder: 'Type to receive suggestions',
 		queryRemote: false,
 		remote: {
+			emptyResultPlaceholder: 'No matches found',
 			extraParams: {},
 			loadPlaceholder: 'Please wait...',
 			method: 'post',
@@ -284,10 +285,13 @@ TextboxList.Autocomplete = new Class({
 			results = this.options.resultsFilter(results);
 		}
 		this.hidePlaceholder();
+		if ( ! results.length) {
+			this.showPlaceholder(this.options.remote.emptyResultPlaceholder);
+		}
 		results.each(function(result) {
-		this.blur();
-		this.list.empty().setStyle('display', 'block');
-		if ( ! results.length) return;
+			this.blur();
+			this.list.empty().setStyle('display', 'block');
+			if ( ! results.length) return;
 			this.addResult(result, search);
 		}, this);
 		if (this.options.onlyFromValues) {
