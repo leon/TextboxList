@@ -24,20 +24,20 @@ var TextboxList = new Class({
 	plugins: [],
 	options: {
 		/** events
-		onFocus: $empty,
-		onBlur: $empty,
-		onBitFocus: $empty,
-		onBitBlur: $empty,
-		onBitAdd: $empty,
-		onBitRemove: $empty,
-		onBitBoxFocus: $empty,
-		onBitBoxBlur: $empty,
-		onBitBoxAdd: $empty,
-		onBitBoxRemove: $empty,
-		onBitEditableFocus: $empty,
-		onBitEditableBlue: $empty,
-		onBitEditableAdd: $empty,
-		onBitEditableRemove: $empty,
+		onFocus: function(){},
+		onBlur: function(){},
+		onBitFocus: function(){},
+		onBitBlur: function(){},
+		onBitAdd: function(){},
+		onBitRemove: function(){},
+		onBitBoxFocus: function(){},
+		onBitBoxBlur: function(){},
+		onBitBoxAdd: function(){},
+		onBitBoxRemove: function(){},
+		onBitEditableFocus: function(){},
+		onBitEditableBlue: function(){},
+		onBitEditableAdd: function(){},
+		onBitEditableRemove: function(){},
 		**/
 		bitsOptions: {editable: {}, box: {}},
 		check: function(s) {
@@ -55,7 +55,7 @@ var TextboxList = new Class({
 		endEditableBit: true,
 		hideEditableBits: true,
 		inBetweenEditableBits: true,
-		keys: {previous: Event.Keys.left, next: Event.Keys.right},
+		keys: {previous: 'left', next: 'right'},
 		max: null,
 		plugins: {},
 		prefix: 'textboxlist',
@@ -102,8 +102,8 @@ var TextboxList = new Class({
 					return ev[e];
 				});
 				var custom = special || (this.current.is('editable') && this.current.isSelected());
-				switch (ev.code) {
-					case Event.Keys.backspace:
+				switch (ev.key) {
+					case 'backspace':
 						if (this.current.is('box')) {
 							ev.stop();
 							return this.current.remove();
@@ -114,7 +114,7 @@ var TextboxList = new Class({
 							this.focusRelative('previous');
 						}
 						break;
-					case Event.Keys['delete']:
+					case 'delete':
 						if (this.current.is('box')) {
 							ev.stop();
 							return this.current.remove();
@@ -359,7 +359,7 @@ TextboxListBit.Editable = new Class({
 		growingOptions: {},
 		stopEnter: true,
 		addOnBlur: false,
-		addKeys: Event.Keys.enter
+		addKeys: 'enter'
 	},
 
 	type: 'editable',
@@ -398,10 +398,10 @@ TextboxListBit.Editable = new Class({
 		if (this.options.addKeys || this.options.stopEnter) {
 			this.element.addEvent('keydown', function(ev) {
 				if ( ! this.focused) return;
-				if (this.options.stopEnter && ev.code === Event.Keys.enter) {
+				if (this.options.stopEnter && ev.key === 'enter') {
 					ev.stop();
 				}
-				if (Array.from(this.options.addKeys).contains(ev.code)){
+				if (Array.from(this.options.addKeys).contains(ev.key)){
 					ev.stop();
 					this.toBox();
 				}
@@ -464,7 +464,7 @@ TextboxListBit.Editable = new Class({
 		var box = this.textboxlist.create('box', value);
 		if (box) {
 			box.inject(this.bit, 'before');
-			this.setValue([null, '', null])
+			this.setValue([null, '', null]);
 			return box;
 		}
 		return null;

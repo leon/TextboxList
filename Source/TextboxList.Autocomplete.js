@@ -169,8 +169,8 @@ TextboxList.Autocomplete = new Class({
 	},
 
 	navigate: function(ev) {
-		switch (ev.code) {
-			case Event.Keys.up:
+		switch (ev.key) {
+			case 'up':
 				ev.stop();
 				if ( ! this.options.onlyFromValues && this.current && this.current == this.list.getFirst()) {
 					this.blur();
@@ -179,7 +179,7 @@ TextboxList.Autocomplete = new Class({
 					this.focusRelative('previous');
 				}
 				break;
-			case Event.Keys.down:
+			case 'down':
 				ev.stop();
 				if (this.current) {
 					this.focusRelative('next');
@@ -188,7 +188,7 @@ TextboxList.Autocomplete = new Class({
 					this.focusFirst()
 				}
 				break;
-			case Event.Keys.enter:
+			case 'enter':
 				ev.stop();
 				if (this.current) {
 					this.addCurrent();
