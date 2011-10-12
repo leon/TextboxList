@@ -288,10 +288,10 @@ TextboxList.Autocomplete = new Class({
 		if ( ! results.length) {
 			this.showPlaceholder(this.options.remote.emptyResultPlaceholder);
 		}
+		if ( ! results.length) return;
+		this.blur();
+		this.list.empty().setStyle('display', 'block');
 		results.each(function(result) {
-			this.blur();
-			this.list.empty().setStyle('display', 'block');
-			if ( ! results.length) return;
 			this.addResult(result, search);
 		}, this);
 		if (this.options.onlyFromValues) {
