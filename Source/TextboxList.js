@@ -326,7 +326,9 @@ var TextboxListBit = new Class({
 		return this.type == type;
 	},
 
-	remove: function() {
+	remove: function(event) {
+		if(event)
+			event.preventDefault();
 		this.blur();		
 		this.textboxlist.onRemove(this);
 		this.bit.destroy();
