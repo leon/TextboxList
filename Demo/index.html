@@ -31,7 +31,14 @@
 				t2.add('Tag 1').add('Tag 2');
 				
 				// Autocomplete initialization
-				var t4 = new TextboxList('form_tags_input_3', {unique: true, plugins: {autocomplete: {}}});
+				var t4 = new TextboxList('form_tags_input_3', {
+					unique: true,
+					bitsOptions: {
+						editable: {
+							addKeys: [188, 32]
+						}
+					},
+					plugins: {autocomplete: {}}});
 				t4.add('John Doe').add('Jane Roe');
 				
 				// sample data loading with json, but can be jsonp, local, etc. 

@@ -138,8 +138,7 @@ TextboxList.Autocomplete = new Class({
 		this.textboxlist = textboxlist;
 		this.textboxlist.addEvent('bitEditableAdd', this.setupBit.bind(this), true)
 			.addEvent('bitEditableFocus', this.search.bind(this), true)
-			.addEvent('bitEditableBlur', this.hide.bind(this), true)
-			.setOptions({bitsOptions: {editable: {addKeys:[], stopEnter: false}}});
+			.addEvent('bitEditableBlur', this.hide.bind(this), true);
 		if (Browser.ie) {
 			this.textboxlist.setOptions({bitsOptions: {editable: {addOnBlur: false}}});
 		}
