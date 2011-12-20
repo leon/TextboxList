@@ -379,6 +379,7 @@ TextboxListBit.Editable = new Class({
 
 	initialize: function(value, textboxlist, options) {
 		this.parent(value, textboxlist, options);
+		var self = this;
 		this.element = new Element('input.'+this.typeprefix+'-input[value="'+(this.value ? this.value[1] : '')+'"][type=text][autocomplete=off]').inject(this.bit);
 		if ($chk(this.options.tabIndex)) {
 			this.element.tabIndex = this.options.tabIndex;
@@ -388,26 +389,27 @@ TextboxListBit.Editable = new Class({
 		}
 		this.element.addEvents({
 			focus: function() {
-				this.focus(true);
-			}.bind(this),
+				self.focus(true);
+			},
 			blur: function() {
-				this.blur(true);
-				if (this.options.addOnBlur) {
-					this.toBox();
+				self.blur(true);
+				if (self.options.addOnBlur) {
+					self.toBox();
 				}
-			}.bind(this)
+			}
 		});
 		if (this.options.addKeys || this.options.stopEnter) {
+			var keys = Array.from(self.options.addKeys);
 			this.element.addEvent('keydown', function(ev) {
-				if ( ! this.focused) return;
-				if (this.options.stopEnter && ev.key === 'enter') {
+				if (!self.focused) return;
+				if (self.options.stopEnter && ev.key === 'enter') {
 					ev.stop();
 				}
-				if (Array.from(this.options.addKeys).contains(ev.key)){
+				if (keys.contains(ev.key) || keys.contains(ev.code)){
 					ev.stop();
-					this.toBox();
+					self.toBox();
 				}
-			}.bind(this));
+			});
 		}
 	},
 

@@ -27,7 +27,7 @@
 				t.add('Tag 1').add('Tag 2').add('Tag 3');
 				
 				// With custom adding keys 
-				var t2 = new TextboxList('form_tags_input_2', {bitsOptions:{editable:{addKeys: 188}}});
+				var t2 = new TextboxList('form_tags_input_2', {bitsOptions:{editable:{addKeys: [188, 32]}}});
 				t2.add('Tag 1').add('Tag 2');
 				
 				// Autocomplete initialization
@@ -85,7 +85,7 @@
 		<div class="form_tags"><input type="text" name="test" value="" id="form_tags_input" /></div>
 		<p class="note">Type the tag (one or more words) and press enter. Use left/right arrows, backspace, delete to navigate</p>
 		
-		<p>Enter tags (with commas)</p>
+		<p>Enter tags (with commas or space)</p>
 		<div class="form_tags"><input type="text" name="test2" value="" id="form_tags_input_2" /></div>
 		<p class="note">Type the tag (one or more words) and press comma (,). Use left/right arrows, backspace, delete to navigate</p>
 		
