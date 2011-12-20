@@ -6,7 +6,7 @@ authors:
   - Guillermo Rauch
 
 requires:
-  core/1.3:   '*'
+  core/1.3: '*'
 
 provides:
   - textboxlist.autocomplete

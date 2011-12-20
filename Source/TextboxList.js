@@ -464,7 +464,7 @@ TextboxListBit.Editable = new Class({
 	},
 
 	toBox: function() {
-		var value = this.getValue();				
+		var value = this.getValue();
 		var box = this.textboxlist.create('box', value);
 		if (box) {
 			box.inject(this.bit, 'before');
