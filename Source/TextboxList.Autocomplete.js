@@ -6,7 +6,7 @@ authors:
   - Guillermo Rauch
 
 requires:
-  core/1.3:   '*'
+  core/1.3: '*'
 
 provides:
   - textboxlist.autocomplete
@@ -138,8 +138,7 @@ TextboxList.Autocomplete = new Class({
 		this.textboxlist = textboxlist;
 		this.textboxlist.addEvent('bitEditableAdd', this.setupBit.bind(this), true)
 			.addEvent('bitEditableFocus', this.search.bind(this), true)
-			.addEvent('bitEditableBlur', this.hide.bind(this), true)
-			.setOptions({bitsOptions: {editable: {addKeys:[], stopEnter: false}}});
+			.addEvent('bitEditableBlur', this.hide.bind(this), true);
 		if (Browser.ie) {
 			this.textboxlist.setOptions({bitsOptions: {editable: {addOnBlur: false}}});
 		}
@@ -288,10 +287,10 @@ TextboxList.Autocomplete = new Class({
 		if ( ! results.length) {
 			this.showPlaceholder(this.options.remote.emptyResultPlaceholder);
 		}
+		if ( ! results.length) return;
+		this.blur();
+		this.list.empty().setStyle('display', 'block');
 		results.each(function(result) {
-			this.blur();
-			this.list.empty().setStyle('display', 'block');
-			if ( ! results.length) return;
 			this.addResult(result, search);
 		}, this);
 		if (this.options.onlyFromValues) {

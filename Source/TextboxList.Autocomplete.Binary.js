@@ -1,12 +1,12 @@
 /*
 ---
-description:     TextboxList
+description: TextboxList
 
 authors:
   - Guillermo Rauch
 
 requires:
-  core/1.2.1:   '*'
+  core/1.2.1: '*'
 
 provides:
   - textboxlist.autocomplete.binary
@@ -22,7 +22,7 @@ TextboxList.Autocomplete.Methods.binary = {
 		search = search[method]();
 		while (high >= low) {
 			var mid = parseInt((low + high) / 2);
-			var curr = values[mid][1].substr(0, search.length)[method]();			
+			var curr = values[mid][1].substr(0, search.length)[method]();
 			var result = ((search == curr) ? 0 : ((search > curr) ? 1 : -1));
 			if (result < 0) {
 				high = mid - 1;
