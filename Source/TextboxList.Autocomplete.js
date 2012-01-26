@@ -171,7 +171,7 @@ TextboxList.Autocomplete = new Class({
 		switch (ev.key) {
 			case 'up':
 				ev.stop();
-				if ( ! this.options.onlyFromValues && this.current && this.current == this.list.getFirst()) {
+				if (!this.options.onlyFromValues && this.current && this.current == this.list.getFirst()) {
 					this.blur();
 				}
 				else {
@@ -191,8 +191,7 @@ TextboxList.Autocomplete = new Class({
 				ev.stop();
 				if (this.current) {
 					this.addCurrent();
-				}
-				else if ( ! this.options.onlyFromValues) {
+				} else if (!this.options.onlyFromValues) {
 					var value = this.currentInput.getValue();
 					var box = this.textboxlist.create('box', value);
 					if (box){
