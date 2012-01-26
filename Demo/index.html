@@ -35,11 +35,17 @@
 					unique: true,
 					bitsOptions: {
 						editable: {
-							addKeys: [188, 32]
+							addOnBlur: true,
+							stopEnter: true,
+							addKeys: [188, 32, 13]
 						}
 					},
-					plugins: {autocomplete: {}}});
+					plugins: {
+						autocomplete: {}
+					}
+				});
 				t4.add('John Doe').add('Jane Roe');
+				t4.plugins['autocomplete'].setValues([["Mr Dude", "Mr Dude"],["A Girl", "A Girl"],["Boy", "Boy"]]);
 				
 				// sample data loading with json, but can be jsonp, local, etc. 
 				// the only requirement is that you call setValues with an array of this format:

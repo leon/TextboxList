@@ -400,7 +400,7 @@ TextboxListBit.Editable = new Class({
 		});
 		if (this.options.addKeys || this.options.stopEnter) {
 			var keys = Array.from(self.options.addKeys);
-			this.element.addEvent('keydown', function(ev) {
+			this.element.addEvent('keyup', function(ev) {
 				if (!self.focused) return;
 				if (self.options.stopEnter && ev.key === 'enter') {
 					ev.stop();
