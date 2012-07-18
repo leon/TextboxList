@@ -28,6 +28,7 @@ TextboxList.Autocomplete = new Class({
 		method: 'standard',
 		mouseInteraction: true,
 		onlyFromValues: false,
+		showAllValues: false,
 		placeholder: 'Type to receive suggestions',
 		queryRemote: false,
 		remote: {
@@ -123,6 +124,7 @@ TextboxList.Autocomplete = new Class({
 		this.hidetimer = (function() {
 			this.hidePlaceholder();
 			this.list.setStyle('display', 'none');
+			this.container.setStyle('display', 'none');
 			this.currentSearch = null;
 		}).delay(Browser.ie ? 150 : 0, this);
 	},
@@ -130,6 +132,7 @@ TextboxList.Autocomplete = new Class({
 	hidePlaceholder: function() {
 		if (this.placeholder) {
 			this.placeholder.setStyle('display', 'none');
+			this.container.setStyle('display', 'none');
 		}
 	},
 
@@ -184,7 +187,7 @@ TextboxList.Autocomplete = new Class({
 					this.focusRelative('next');
 				}
 				else {
-					this.focusFirst()
+					this.focusFirst();
 				}
 				break;
 			case 'enter':
@@ -214,6 +217,10 @@ TextboxList.Autocomplete = new Class({
 		if (search == this.currentSearch) return;
 		this.currentSearch = search;
 		this.list.setStyle('display', 'none');
+
+		if(!this.placeholder)
+			this.container.setStyle('display', 'none');
+
 		if (search.length < this.options.minLength) return;
 		if (this.options.queryRemote) {
 			if (this.searchValues[search]) {
@@ -263,6 +270,7 @@ TextboxList.Autocomplete = new Class({
 	showPlaceholder: function(customHTML) {
 		if (this.placeholder) {
 			this.placeholder.setStyle('display', 'block');
+			this.container.setStyle('display', 'block');
 			if (customHTML) {
 				this.placeholder.set('html', customHTML);
 			}
@@ -283,12 +291,24 @@ TextboxList.Autocomplete = new Class({
 			results = this.options.resultsFilter(results);
 		}
 		this.hidePlaceholder();
-		if ( ! results.length) {
+		if ( !this.options.showAllValues && ! results.length) {
 			this.showPlaceholder(this.options.remote.emptyResultPlaceholder);
-		}
-		if ( ! results.length) return;
+		} else
+			this.container.setStyle('display', 'block');
+
+		if ( !this.options.showAllValues && ! results.length) return;
 		this.blur();
 		this.list.empty().setStyle('display', 'block');
+
+		if(this.options.showAllValues) {
+			var values = [];
+			this.values.each(function(value){
+				if(!results.contains(value))
+					values.push(value);
+			});
+			results = results.append(values);
+		}
+
 		results.each(function(result) {
 			this.addResult(result, search);
 		}, this);
@@ -317,7 +337,7 @@ TextboxList.Autocomplete.Methods = {
 		highlight: function(element, search, insensitive, klass) {
 			var regex = new RegExp('(<[^>]*>)|(\\b'+search.escapeRegExp()+')', insensitive ? 'ig' : 'g');
 			return element.set('html', element.get('html').replace(regex, function(a, b, c) {
-				return (a.charAt(0) == '<') ? a : '<strong class="'+klass+'">'+c+'</strong>'; 
+				return (a.charAt(0) == '<') ? a : '<strong class="'+klass+'">'+c+'</strong>';
 			}));
 		}
 	}
