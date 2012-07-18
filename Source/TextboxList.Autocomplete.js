@@ -47,7 +47,7 @@ TextboxList.Autocomplete = new Class({
 		var box = this.textboxlist.create('box', value.slice(0, 3));
 		if (box) {
 			box.autoValue = value;
-			if (this.index != null) {
+			if (this.index !== null) {
 				this.index.push(value);
 			}
 			this.currentInput.setValue([null, '', null]);
