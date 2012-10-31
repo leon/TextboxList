@@ -41,7 +41,7 @@ var TextboxList = new Class({
 		**/
 		bitsOptions: {editable: {}, box: {}},
 		check: function(s) {
-			return s.clean().replace(/,/g, '') != '';
+			return s.clean().replace(/,/g, '') !== '';
 		},
 		decode: function(o) {
 			return o.split(',');
@@ -94,7 +94,7 @@ var TextboxList = new Class({
 				}
 				this.blur();
 			}.bind(this),
-			keydown: function(ev) {
+			keyup: function(ev) {
 				if ( ! this.focused || ! this.current) return;
 				var caret = this.current.is('editable') ? this.current.getCaret() : null;
 				var value = this.current.getValue()[1];
@@ -103,13 +103,19 @@ var TextboxList = new Class({
 				});
 				var custom = special || (this.current.is('editable') && this.current.isSelected());
 				switch (ev.key) {
+					case 'enter':
+						if (this.current.is('box') || ((caret === 0 || !value.length) && ! custom)) {
+							ev.stop();
+							this.current.editBit();
+							break;
+						}
 					case 'backspace':
 						if (this.current.is('box')) {
 							ev.stop();
 							return this.current.remove();
 						}
 					case this.options.keys.previous:
-						if (this.current.is('box') || ((caret == 0 || !value.length) && ! custom)) {
+						if (this.current.is('box') || ((caret === 0 || !value.length) && ! custom)) {
 							ev.stop();
 							this.focusRelative('previous');
 						}
@@ -141,8 +147,8 @@ var TextboxList = new Class({
 
 	create: function(klass, value, options) {
 		if (klass == 'box') {
-			if (( ! value[0] && ! value[1]) || ($chk(value[1]) && ! this.options.check(value[1]))) return false;
-			if ($chk(this.options.max) && this.list.getChildren('.'+this.options.prefix+'-bit-box').length + 1 > this.options.max) return false;
+			if (( ! value[0] && ! value[1]) || (value[1] !== null && ! this.options.check(value[1]))) return false;
+			if (this.options.max !== null && this.list.getChildren('.'+this.options.prefix+'-bit-box').length + 1 > this.options.max) return false;
 			if (this.options.unique && this.index.contains(this.uniqueValue(value))) return false;
 		}
 		return new TextboxListBit[klass.capitalize()](value, this, Object.merge(this.options.bitsOptions[klass], options));
@@ -161,7 +167,9 @@ var TextboxList = new Class({
 	},
 
 	focusRelative: function(dir, to) {
-		var bit = this.getBit(document.id([to, this.current].pick())['get'+dir.capitalize()]());
+		var bit = false;
+		if(typeOf(document.id([to, this.current].pick())) != 'null')
+			bit = this.getBit(document.id([to, this.current].pick())['get'+dir.capitalize()]());
 		if (bit) {
 			bit.focus();
 		}
@@ -232,7 +240,7 @@ var TextboxList = new Class({
 	},
 
 	onRemove: function(bit) {
-		if ( ! this.focused) return;
+		// if ( ! this.focused) return;
 		if (this.options.unique && bit.is('box')) {
 			this.index.erase(this.uniqueValue(bit.value));
 		}
@@ -298,6 +306,22 @@ var TextboxListBit = new Class({
 		return this;
 	},
 
+	editBit: function(e) {
+		if(!e || (e.key == 'enter' && this.focused)) {
+			// this.blur();
+			var editable = this.textboxlist.create('editable');
+			var editableInput = editable.bit.getElement('.textboxlist-bit-editable-input');
+			editableInput.setProperty('value',this.value[1]);
+			editable.focus();
+			editableInput.addEvent('toBox',function(){
+					editable.bit.destroy();
+				});
+			editable.inject(this, 'after');
+			editableInput.retrieve('growing').resize();
+			this.remove();
+		}
+	},
+
 	initialize: function(value, textboxlist, options){
 		this.name = this.type.capitalize();
 		this.value = value;
@@ -312,6 +336,9 @@ var TextboxListBit = new Class({
 			}.bind(this),
 			mouseleave: function() {
 				this.bit.removeClass(this.prefix+'-hover').removeClass(this.typeprefix+'-hover');
+			}.bind(this),
+			'dblclick': function(){
+				this.editBit();
 			}.bind(this)
 		});
 	},
@@ -329,7 +356,7 @@ var TextboxListBit = new Class({
 	remove: function(event) {
 		if(event)
 			event.preventDefault();
-		this.blur();		
+		this.blur();
 		this.textboxlist.onRemove(this);
 		this.bit.destroy();
 		return this.fireBitEvent('remove');
@@ -469,8 +496,12 @@ TextboxListBit.Editable = new Class({
 		if (box) {
 			box.inject(this.bit, 'before');
 			this.setValue([null, '', null]);
+			this.element.fireEvent('toBox');
 			return box;
 		}
+		this.textboxlist.focusRelative('next');
+		// this.textboxlist.focusRelative('previous');
+		this.element.fireEvent('toBox');
 		return null;
 	}
 
