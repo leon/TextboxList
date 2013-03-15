@@ -256,6 +256,19 @@ TextboxList.Autocomplete = new Class({
 		}.bind(this), true);
 	},
 
+	setSelected: function(selected){
+		for (var i = 0; i < selected.length; i++){
+			var value = selected[i];
+			var b = this.textboxlist.create('box', value.slice(0, 3));
+			if (b){
+				b.autoValue = value;
+				if (this.index != null) this.index.push(value);
+				var afterEl = this.textboxlist.list.getLast('.' + this.textboxlist.options.prefix + '-bit-box');
+				b.inject(afterEl || this.textboxlist.list, afterEl ? 'after' : 'top');
+			}
+		}
+	},
+
 	setValues: function(values) {
 		this.values = values;
 	},
